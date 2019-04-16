@@ -86,7 +86,7 @@ class MDP:
             actions.append("Trade grain for wood")
             actions.append("Trade grain for brick")
         return actions
-        
+
 
     def getTransitionStatesAndProbs(self, state, action):
         """
@@ -99,7 +99,7 @@ class MDP:
         learning in general, we do not know these
         probabilities nor do we directly model them.
         """
-        nextState = np.array(state) 
+        nextState = np.array(state)
         if action == "Roll dice":
             transitions = []
             roll_resources = self.player.board.get_resources(self.player.player_id)
@@ -151,7 +151,7 @@ class MDP:
         Not available in reinforcement learning.
         """
         return nextState[3] - state[3]
-        
+
 
     def isTerminal(self, state):
         """
@@ -196,7 +196,7 @@ class ValueIteration:
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
-        self.values = defaultdict(float) 
+        self.values = defaultdict(float)
         start = time.time()
         self.runValueIteration()
         print("Value Iteration on", iterations, "iterations took", time.time()-start, "seconds.")
@@ -205,7 +205,7 @@ class ValueIteration:
         # Write value iteration code here
         for i in range(self.iterations):
             oldVals = self.values.copy()
-            for state in self.mdp.getStates():    
+            for state in self.mdp.getStates():
                 all_q = []
                 actions = self.mdp.getPossibleActions(state)
                 if(len(actions) == 0):

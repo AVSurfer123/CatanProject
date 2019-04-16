@@ -283,7 +283,8 @@ class Catan:
 
 
 class Player:
-    def __init__(self, player_name, action, dumpPolicy, planBoard, resources=np.array([START_RESOURCES, START_RESOURCES, START_RESOURCES]), points = 0):
+    def __init__(self, player_name, action, dumpPolicy, planBoard,
+                 resources=np.array([START_RESOURCES, START_RESOURCES, START_RESOURCES]), points = 0):
         self.name = player_name
         self.action = action
         self.dumpPolicy = dumpPolicy
