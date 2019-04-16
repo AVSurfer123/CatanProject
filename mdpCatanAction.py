@@ -99,7 +99,7 @@ class MDP:
         learning in general, we do not know these
         probabilities nor do we directly model them.
         """
-        nextState = np.array(state)
+        nextState = np.array(state) 
         if action == "Roll dice":
             transitions = []
             roll_resources = self.player.board.get_resources()
