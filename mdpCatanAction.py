@@ -38,10 +38,10 @@ class MDP:
         ports = []
         for e in self.player.get_settlements():
             if self.player.board.is_port(e):
-                ports.append(self.board.which_port(e))
+                ports.append(self.player.board.which_port(e))
         for e in self.player.get_cities():
             if self.player.board.is_port(e):
-                ports.append(self.board.which_port(e))
+                ports.append(self.player.board.which_port(e))
         for i in range(2):
             if i in ports:
                 self.trade_req[i] = 2
@@ -68,10 +68,10 @@ class MDP:
         if self.isTerminal(state):
             return []
         actions = ["Roll dice"]
-        if np.all(state[:3] >= costs[CARD,:]):
-            actions.append("Buy card")
         if np.all(state[:3] >= costs[SETTLEMENT,:]):
             actions.append("Buy settlement")
+        if np.all(state[:3] >= costs[CARD,:]):
+            actions.append("Buy card")
         if np.all(state[:3] >= costs[CITY,:]) and len(self.player.get_settlements()) > 0:
             actions.append("Buy city")
         if np.all(state[:3] >= costs[ROAD,:]):
@@ -102,7 +102,7 @@ class MDP:
         nextState = np.array(state) 
         if action == "Roll dice":
             transitions = []
-            roll_resources = self.player.board.get_resources()
+            roll_resources = self.player.board.get_resources(self.player.player_id)
             for roll in rollProb:
                 nextState = np.zeros(4)
                 nextState[:3] = np.add(state[:3], roll_resources[roll-2, :])
@@ -111,7 +111,7 @@ class MDP:
             return transitions
         elif action == "Buy settlement":
             nextState[:3] = np.subtract(state[:3], costs[SETTLEMENT, :])
-            nextState[3] = state[3] + 1.01
+            nextState[3] = state[3] + 1
         elif action == "Buy card":
             nextState[:3] = np.subtract(state[:3], costs[CARD, :])
             nextState[3] = state[3] + 1
@@ -163,7 +163,7 @@ class MDP:
         """
         return state[3] == 10
 
-class ValueIteration():
+class ValueIteration:
     """
       Abstract agent which assigns values to (state,action)
       Q-Values for an environment. As well as a value to a
@@ -270,22 +270,42 @@ class ValueIteration():
 def action(self):
     mdp = MDP(self)
     valueIter = ValueIteration(mdp, discount=1.0, iterations=10)
-    print(valueIter.values)
+    print(max(valueIter.values.values()))
     state = np.concatenate((self.resources, [self.points]))
     state = tuple(state)
     print(state)
     best = valueIter.getAction(state)
     print(best)
     print(self.board.settlements)
-    if self.get_settlements() == []:
-        (x,y) = self.preComp 
+    if best == "Buy settlement":
+        x = np.random.randint(0, self.board.width+1)
+        y = np.random.randint(0, self.board.height+1)
         self.buy("settlement", x, y)
-    elif self.if_can_buy("card"):
+    elif best == "Buy card":
         self.buy("card")
+    elif best == "Buy road":
+        x, y = random.choice(self.get_settlements())
+        x += np.random.randint(2)
+        y += np.random.randint(2)
+        self.buy("road", )
+    elif best == "Buy city":
+        x, y = random.choice(self.get_settlements())
+        self.buy("city", x, y)
+    elif best == "Trade wood for brick":
+        self.trade(0, 1)
+    elif best == "Trade wood for grain":
+        self.trade(0, 2)
+    elif best == "Trade brick for wood":
+        self.trade(1, 0)
+    elif best == "Trade brick for grain":
+        self.trade(1, 2)
+    elif best == "Trade grain for wood":
+        self.trade(2, 0)
+    elif best == "Trade grain for brick":
+        self.grade(2, 1)
     elif self.resources[np.argmax(self.resources)] >= 4:
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
-    return
 
 def planBoard(baseBoard):
     x = genRand(0,baseBoard.width+1)

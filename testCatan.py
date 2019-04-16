@@ -1,5 +1,5 @@
 from catan import *
-from mdpCatanAction import MDP, action, dumpPolicy, planBoard
+from mdpCatanAction import MDP, action, dumpPolicy, planBoard, ValueIteration
 
 num_trials = 100
 
@@ -12,9 +12,20 @@ player = Player("Player 1", action, dumpPolicy, planBoard)
 player.join_board(board)
 
 mdp = MDP(player)
-print(mdp.getStates())
-print(mdp.getPossibleActions((3,3,3,4)))
-print(mdp.getTransitionStatesAndProbs((3,3,3,4), "Buy city"))
+valueIter = ValueIteration(mdp, discount=0.9, iterations=100)
+print(valueIter.values[(3,3,3,4)])
+print(valueIter.values[(1,2,2,5)])
+for a in mdp.getPossibleActions((3,3,3,0)):
+    print("Action", a, ":", mdp.getTransitionStatesAndProbs((3,3,3,0), a))
+    print("Q-Value with", a, ":", valueIter.getQValue((3,3,3,0), a))
+print(valueIter.getAction((3,3,3,4))) 
+print(player.player_id) 
+print(board.num_players) 
+
+#print(mdp.getStates())
+print(mdp.getPossibleActions((2,2,4,4)))
+print(mdp.getTransitionStatesAndProbs((2,2,2,1), "Buy settlement"))
+print(mdp.getReward((2,2,2,1), None, (4,4,1,6)))
 print(mdp.getStartState())
 
 input()
