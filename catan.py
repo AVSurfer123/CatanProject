@@ -283,7 +283,8 @@ class Catan:
 
 
 class Player:
-    def __init__(self, player_name, action, dumpPolicy, planBoard, resources=np.array([START_RESOURCES, START_RESOURCES, START_RESOURCES]), points = 0):
+    def __init__(self, player_name, action, dumpPolicy, planBoard,
+                 resources=np.array([START_RESOURCES, START_RESOURCES, START_RESOURCES]), points = 0):
         self.name = player_name
         self.action = action
         self.dumpPolicy = dumpPolicy
@@ -312,7 +313,6 @@ class Player:
         if not self.player_id:
             raise CatanException("Must join a board.")
         return self.board.get_player_roads(self.player_id)
-
 
     def if_can_buy(self, item):
         if item == "card":
