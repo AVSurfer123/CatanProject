@@ -14,12 +14,12 @@ def action(self):
     if self.board.if_can_build("settlement", optimal_settlement[0], optimal_settlement[1]):
         if self.if_can_buy("settlement"):
             self.board.build(optimal_settlement[0], optimal_settlement[1], "settlement")
-    else if self.if_can_buy("road"):
+    elif self.if_can_buy("road"):
         roads = self.get_roads()
-        
 
 
- 
+
+
     elif self.resources[np.argmax(self.resources)] >= 4:
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
