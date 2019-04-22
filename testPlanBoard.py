@@ -14,11 +14,12 @@ for i in range(num_trials):
     player.join_board(board)
     #print(board.resources)
     #print(board.dice)
-    for j in range(300):
+    for j in range(100):
         s = planBoard(board)[0](player, board)
-    print("finished game", i)
+    #print("finished game", i)
 
 print("done")
+
 #print("average turns to win: {}".format(simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials)))
 
 #settlements, cities, roads, hands, live_points, dice_rolls = simulate_1p_game_with_data(action, dumpPolicy, planBoard, board)

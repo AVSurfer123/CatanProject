@@ -1,5 +1,6 @@
 from catan import *
-from mdpCatanAction import MDP, action, dumpPolicy, planBoard, ValueIteration
+
+from expectimaxCatanAction import *
 
 num_trials = 100
 
@@ -11,22 +12,21 @@ board = Catan(dice, resources)
 player = Player("Player 1", action, dumpPolicy, planBoard)
 player.join_board(board)
 
-mdp = MDP(player)
-valueIter = ValueIteration(mdp, discount=0.9, iterations=100)
-print(valueIter.values[(3,3,3,4)])
-print(valueIter.values[(1,2,2,5)])
-for a in mdp.getPossibleActions((3,3,3,0)):
-    print("Action", a, ":", mdp.getTransitionStatesAndProbs((3,3,3,0), a))
-    print("Q-Value with", a, ":", valueIter.getQValue((3,3,3,0), a))
-print(valueIter.getAction((3,3,3,4))) 
-print(player.player_id) 
-print(board.num_players) 
-
-#print(mdp.getStates())
-print(mdp.getPossibleActions((2,2,4,4)))
-print(mdp.getTransitionStatesAndProbs((2,2,2,1), "Buy settlement"))
-print(mdp.getReward((2,2,2,1), None, (4,4,1,6)))
-print(mdp.getStartState())
+gameTree = Expectimax(depth=2, evalFunction=boardHeuristic)
+startState = State(player)
+print(gameTree.getAction(startState))
+print(gameTree.getValue(startState))
+print(boardHeuristic(startState))
+state = State(startState, copy=True)
+state.resources = np.array([0,3,3])
+#print(gameTree.getAction(state))
+#print(gameTree.getValue(state))
+#print(boardHeuristic(state))
+state.resources = np.array([6,2,2])
+print(state.getLegalActions(1))
+print(gameTree.getAction(state))
+print(gameTree.getValue(state))
+print(boardHeuristic(state))
 
 input()
 

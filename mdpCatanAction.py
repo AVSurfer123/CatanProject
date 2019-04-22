@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 import time
 from collections import defaultdict
+import random
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
 
@@ -163,6 +164,21 @@ class MDP:
         """
         return state[3] == 10
 
+class PolicyIteration:
+
+    def __init__(self, mdp, discount = 1.0, iterations = 100):
+        self.mdp = mdp
+        self.discount = discount
+        self.iterations = iterations
+        self.runPolicyIteration()
+
+    def runPolicyIteration(self):
+        pass
+    
+    def getAction(self, state):
+        pass
+
+
 class ValueIteration:
     """
       Abstract agent which assigns values to (state,action)
@@ -302,7 +318,7 @@ def action(self):
     elif best == "Trade grain for wood":
         self.trade(2, 0)
     elif best == "Trade grain for brick":
-        self.grade(2, 1)
+        self.trade(2, 1)
     elif self.resources[np.argmax(self.resources)] >= 4:
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)

@@ -71,7 +71,7 @@ def get_resource_scarcity(board):
 def get_proximity_score(vertex1, board, player_id):
     num_buildings = 0
     total_dist = 0
-    if board.num_players == 1 or len(board.settlements)+len(boad.cities) == 0:
+    if board.num_players == 1 or len(board.settlements)+len(board.cities) == 0:
         return 0
     for s in board.settlements:
         if board.settlements[s] != player_id:

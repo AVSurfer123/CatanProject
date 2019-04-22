@@ -1,8 +1,9 @@
 import numpy as np
 import catan
+from catan import *
 
 def action(self):
-    if self.board.settlements == []:
+    if self.get_settlements() == []:
         (x,y) = self.preComp
         self.buy("settlement", x, y)
     elif self.if_can_buy("card"):
@@ -11,6 +12,12 @@ def action(self):
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
     return
+
+def planBoard(baseBoard):
+    # prefer middle of the board over edges
+    x = np.random.randint(1, baseBoard.width)
+    y = np.random.randint(1, baseBoard.height)
+    return x,y
 
 # sample dump policy function: takes in the "Player" and ROBBER_MAX_RESOURCES
 # and returns a resource array which indicates the number of each resource to dump.
@@ -61,5 +68,13 @@ def dumpPolicy(self, max_resources):
                 new_resources[0] -= 1
     return self.resources - new_resources
 
-def genRand(low,high):
-    return np.random.randint(low, high)
+    
+num_trials = 200
+width, height = 4, 4
+dice = get_random_dice_arrangement(width, height)
+resources = np.random.randint(0, 3, (height, width))
+board = Catan(dice, resources)
+import time
+start = time.time()
+print("average turns to win: {}".format(simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials)))
+print("Time for {} games:".format(num_trials), time.time() - start)
