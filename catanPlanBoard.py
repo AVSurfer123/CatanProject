@@ -97,13 +97,20 @@ def settlement_eval(player, board, v, gains, goal=0):
 def vertex_eval(player, board, v, gains, goal=0):
     h1,h2,h3,h4,h5 = 0.1,1,1,0.2,0.5 #hyperparameters to tune
     w = 0.5*costs[goal] # weight given to resource based on goal as determined by player action (very naive implementation right now)
-    player_dist = distance_score(v, board, player.player_id) # should be the number of settlements nearby
-    #enemies = set([play])
+    dist_key = lambda t: t[1]
+    player_dist = distance_score(v, board, player.player_id)
+    enemies = set([id for id in board.settlements.values() if id != player.player_id])
+    player_distances = [(id, distance_score(v, board, id)) for id in enemies] + [(player.player_id, player_dist)]
+    closest_player = min(player_distances, key=dist_key)
+    if closest_player[0] == player.player_id:
+        dist_score = player_dist
+    else:
+        dist_score = closest_player[1] + player_dist
     vertex_score = gains[v, 0]
     diversity = gains[v, 1]
     resource_count = gains[v, 2:5]
     resource_weights = sum([w[resource]*resource_count[resource] for resource in range(len(resource_count))])
-    return h1*diversity+h2*h3*vertex_score+h4*resource_weights-h5*player_dist
+    return h1*diversity+h2*h3*vertex_score+h4*resource_weights-h5*dist_score
 
 def get_resource_scarcity(board):
     resource_check = np.zeros(3)
