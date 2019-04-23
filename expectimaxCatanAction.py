@@ -1,6 +1,7 @@
 import numpy as np
 import random 
 import time
+from catanPlanBoard import opt_city, opt_road, opt_settlement
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
 
@@ -78,15 +79,16 @@ class State:
             return states
         if action == "Buy settlement":
             resources = np.subtract(resources, costs[SETTLEMENT, :])
-            successor.settlements.append(optimalSettlement(self.player))
+            successor.settlements.append(opt_settlement(self.player, self.board)[0])
             successor.points += 1
         elif action == "Buy card":
             resources = np.subtract(resources, costs[CARD, :])
             successor.points += 1
         elif action == "Buy city":
             resources = np.subtract(self.resources, costs[CITY, :])
-            city = successor.settlements.pop()
-            successor.cities.append(city)
+            v = opt_city(self.player, self.board)[0]
+            successor.settlements.remove(v)
+            successor.cities.append(v)
             successor.points += 1
         elif action == "Buy road":
             resources = np.subtract(resources, costs[ROAD, :])
@@ -116,7 +118,7 @@ class State:
         actions = []
         if self.isTerminal():
             return []
-        if np.all(self.resources >= costs[SETTLEMENT,:]):
+        if np.all(self.resources >= costs[SETTLEMENT,:]) and canBuildSettlement(self.player, self.board):
             actions.append("Buy settlement")
         if np.all(self.resources >= costs[CARD,:]):
             actions.append("Buy card")
@@ -205,6 +207,9 @@ class Expectimax:
             value += val
         return value, best
 
+def canBuildSettlement(player, board):
+    return True
+
 
 def boardHeuristic(state):
     resourceGain = stateResources(state)
@@ -216,7 +221,7 @@ def boardHeuristic(state):
     num_cities = len(state.cities)
     num_roads = len(state.roads)
     trade = 12 - np.sum(state.trade_req)
-    return points*10 + num_settlements*4 + num_cities*8.2 + 2*np.sum(resources.dot(resourceWeights)) \
+    return points*10 + num_settlements*4 + num_cities*8 + 2*np.sum(resources.dot(resourceWeights)) \
             + np.sum(averageGain.dot(resourceWeights)) + 0.5*num_roads + trade/2
 
 def averageResourceGain(resourceGain):
@@ -252,17 +257,6 @@ def stateResources(state):
                         r[die - 2, resource] += 2
     return r
 
-# Need working optimal functions so we can build other settlements. Need to create optimalRoad function as well
-def optimalSettlement(player):
-    if player.get_settlements() == []:
-        return player.board.get_vertex_number(*planBoard(player.board))
-    return np.random.randint(player.board.max_vertex)
-
-def optimalCity(player):
-    return player.get_settlements()[0]
-
-def optimalRoad(player):
-    pass
 
 gameTree = Expectimax(depth=1, evalFunction=boardHeuristic)
 
@@ -281,18 +275,18 @@ def action(self):
         print("Value:", gameTree.getValue(self.state))
         print("Heursitic:", boardHeuristic(self.state))
     if action == "Buy settlement":
-        self.buy("settlement", *self.board.get_vertex_location(optimalSettlement(self)))
+        s = opt_settlement(self, self.board)[1]
+        print("Settlement:", s)
+        self.buy("settlement", *s)
     elif action == "Buy card":
         self.buy("card")
     elif action == "Buy road":
-        if self.get_settlements():
-            v = random.choice(self.get_settlements())
-            x, y = self.board.get_vertex_location(v)
-            s = x + np.random.randint(2)
-            t = y + np.random.randint(2)
-            self.buy("road", (x,y), (s,t))
+        r = opt_road(self, self.board, opt_settlement(self, self.board)[0])
+        print("Road:", r)
+        self.buy("road", *r)
     elif action == "Buy city":
-        self.buy("city", *self.board.get_vertex_location(optimalCity(self)))
+        city = opt_city(self, self.board)[1]
+        self.buy("city", *city)
     elif action == "Trade wood for brick":
         self.trade(0, 1)
     elif action == "Trade wood for grain":

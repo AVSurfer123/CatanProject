@@ -9,65 +9,67 @@ costs = np.array([[2, 1, 1],
                   [0, 3, 3],
                   [1, 1, 0]])
 
-def planBoard(board):
+
+def opt_settlement(player, board, goal="settlement"):
+    """
+    Want to return a list of optimal settlements given the current state of the board.
+    Should iterate through every viable vertex and pick the most optimal one relative to the player's
+    current game state. Emphasis on diversifying resources/increasing odds for a resource.
+    """
     resource_scarcity = get_resource_scarcity(board)
-    def opt_settlement(player, board, goal="settlement"):
-        """
-        Want to return a list of optimal settlements given the current state of the board.
-        Should iterate through every viable vertex and pick the most optimal one relative to the player's
-        current game state. Emphasis on diversifying resources/increasing odds for a resource.
-        """
-        optimal_vertex = -1
-        max_score = 0
-        goal_index = goal_list.get(goal, 0)
-        for v in range(board.max_vertex+1):
-            x,y = board.get_vertex_location(v)
-            if board.if_can_build("settlement", x, y):
-                vertex_score = vertex_eval(player,x,y,"settlement",board, resource_scarcity, goal_index) #formula calculations go here
-                if vertex_score > max_score:
-                    optimal_vertex = v
-                    max_score = vertex_score
-        return (optimal_vertex, board.get_vertex_location(optimal_vertex))
+    optimal_vertex = -1
+    max_score = 0
+    goal_index = goal_list.get(goal, 0)
+    for v in range(board.max_vertex+1):
+        x,y = board.get_vertex_location(v)
+        if board.if_can_build("settlement", x, y):
+            vertex_score = vertex_eval(player,x,y,"settlement",board, resource_scarcity, goal_index) #formula calculations go here
+            if vertex_score > max_score:
+                optimal_vertex = v
+                max_score = vertex_score
+    return (optimal_vertex, board.get_vertex_location(optimal_vertex))
 
-    def opt_city(player, board, goal = "settlement"):
-        """ Same thing as opt_settlements but for cities. Emphasis on maximizing resource gain per turn. """
-        optimal_vertex = -1
-        max_score = 0
-        goal_index = goal_list.get(goal, 0)
-        for v in board.get_player_settlements(player.player_id):
-            x,y = board.get_vertex_location(v)
-            if board.if_can_build("city", x, y):
-                vertex_score = vertex_eval(player,x,y,"city",board, resource_scarcity, goal_index) #formula calculations go here
-                if vertex_score > max_score:
-                    optimal_vertex = v
-                    max_score = vertex_score
-        return (optimal_vertex, board.get_vertex_location(optimal_vertex))
+def opt_city(player, board, goal = "settlement"):
+    """ Same thing as opt_settlements but for cities. Emphasis on maximizing resource gain per turn. """
+    resource_scarcity = get_resource_scarcity(board)
+    optimal_vertex = -1
+    max_score = 0
+    goal_index = goal_list.get(goal, 0)
+    for v in board.get_player_settlements(player.player_id):
+        x,y = board.get_vertex_location(v)
+        if board.if_can_build("city", x, y):
+            vertex_score = vertex_eval(player,x,y,"city",board, resource_scarcity, goal_index) #formula calculations go here
+            if vertex_score > max_score:
+                optimal_vertex = v
+                max_score = vertex_score
+    return (optimal_vertex, board.get_vertex_location(optimal_vertex))
 
-    def opt_road(player, board, building_vertex):
-        """ Given some sort of target settlement/building, determines the optimal place to put a road. Currently only adapted for singleplayer. """
-        player_buildings = board.get_player_settlements(player.player_id) + board.get_player_cities(player.player_id)
-        player_roads = board.get_player_roads(player.player_id)
-        accessible_vertices = sorted(set(player_buildings+ [v for pair in player_roads for v in pair]), key = lambda v: manhattan_distance(v,building_vertex,board))
-        for v in accessible_vertices:
-            neighbor_vertices = []
-            x,y = board.get_vertex_location(v)
-            for dx in [-1, 0]:
-                for dy in [-1,0]:
-                    xx = x + dx
-                    yy = y + dy
-                    if board.is_tile(xx, yy):
-                        neighbor_vertices.append(board.get_vertex_number(xx,yy))
-            neighbor_vertices = sorted(neighbor_vertices, key = lambda v: manhattan_distance(v,building_vertex,board))
-            for n in neighbor_vertices:
-                if board.if_can_build_road(v, n, player.player_id):
-                    v = list(board.get_vertex_location(v))
-                    n = list(board.get_vertex_location(n))
-                    return v,n
+def opt_road(player, board, building_vertex):
+    """ Given some sort of target settlement/building, determines the optimal place to put a road. Currently only adapted for singleplayer. """
+    player_buildings = board.get_player_settlements(player.player_id) + board.get_player_cities(player.player_id)
+    player_roads = board.get_player_roads(player.player_id)
+    accessible_vertices = sorted(set(player_buildings+ [v for pair in player_roads for v in pair]), key = lambda v: manhattan_distance(v,building_vertex,board))
+    for v in accessible_vertices:
+        neighbor_vertices = []
+        x,y = board.get_vertex_location(v)
+        for dx in [-1, 0]:
+            for dy in [-1,0]:
+                xx = x + dx
+                yy = y + dy
+                if board.is_tile(xx, yy):
+                    neighbor_vertices.append(board.get_vertex_number(xx,yy))
+        neighbor_vertices = sorted(neighbor_vertices, key = lambda v: manhattan_distance(v,building_vertex,board))
+        for n in neighbor_vertices:
+            if board.if_can_build_road(v, n, player.player_id):
+                v = list(board.get_vertex_location(v))
+                n = list(board.get_vertex_location(n))
+                return v,n
 
-        print("cannot build roads to destination")
-        return [0,0], [0,0]
+    print("cannot build roads to destination")
+    return [0,0], [0,0]
 
 
+def planBoard(board):
     return [opt_settlement, opt_city, opt_road]
 
 def vertex_eval(player, x, y, building, board, resource_scarcity, goal=0):
