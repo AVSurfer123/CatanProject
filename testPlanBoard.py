@@ -1,6 +1,7 @@
 from catan import *
 from catanPlanBoard import planBoard
 from basicCatanAction import action, dumpPolicy
+import matplotlib.pyplot as plt
 
 num_trials = 100
 print("computing")
@@ -15,16 +16,21 @@ player.join_board(board)
 print(board.resources)
 print(board.dice)
 p = planBoard(board)
-v, c = p[0](player,board)
+expected_gain = p[3]
+v, c = p[0](player, board, expected_gain)
+
 print(v, c)
 x_b, y_b = c
 board.build(x_b, y_b,"settlement", player.player_id)
 
-v, c = p[0](player,board)
+v, c = p[0](player,board, expected_gain)
 print(v,c)
 r_v, r_n = p[2](player, board, v)
 
 board.build_road(r_v, r_n, player.player_id)
+board.settlements[v] = player.player_id
+board.draw()
+plt.show()
 #print("finished game", i)
 
 print("done")

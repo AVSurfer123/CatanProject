@@ -38,9 +38,7 @@ def genRand(low,high):
 def manhattan_distance(vertex_1, vertex_2, board):
     x1, y1 = board.get_vertex_location(vertex_1)
     x2, y2 = board.get_vertex_location(vertex_2)
-    v1 = [x1,y1]
-    v2 = [x2,y2]
-    return abs(v1[0] - v2[0]) + abs(v1[1] - v2[1])
+    return abs(x1 - x2) + abs(y1 - y2)
 
 def expected_resources_gain(board):
     resources = board.get_resources()
