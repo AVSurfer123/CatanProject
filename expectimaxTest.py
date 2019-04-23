@@ -8,6 +8,10 @@ width, height = 4, 4
 dice = get_random_dice_arrangement(width, height)
 resources = np.random.randint(0, 3, (height, width))
 board = Catan(dice, resources)
+board.draw()
+plt.show(block=False)
+print(board.dice)
+print(board.resources)
 
 player = Player("Player 1", action, dumpPolicy, planBoard)
 player.join_board(board)
@@ -28,7 +32,6 @@ print(gameTree.getAction(state))
 print(gameTree.getValue(state))
 print(boardHeuristic(state))
 
-input()
 
 print("average turns to win: {}".format(simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials)))
 

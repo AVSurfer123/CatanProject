@@ -25,7 +25,7 @@ class State:
         self.player = player
         self.board = player.board
         self.id = player.player_id
-        self.resources = player.resources[:]
+        self.resources = np.array(player.resources)
         self.settlements = self.player.get_settlements()[:]
         self.cities = self.player.get_cities()[:]
         self.roads = self.player.get_roads()[:]
@@ -37,7 +37,7 @@ class State:
     def copy(self, state):
         self.player = state.player
         self.board = state.board
-        self.resources = state.resources[:]
+        self.resources = np.array(state.resources)
         self.id = state.id
         self.settlements = state.settlements[:]
         self.cities = state.cities[:]
@@ -118,13 +118,14 @@ class State:
         actions = []
         if self.isTerminal():
             return []
-        if np.all(self.resources >= costs[SETTLEMENT,:]) and canBuildSettlement(self.player, self.board):
+        canBuildSettlement = self.board.if_can_build('settlement', *opt_settlement(self.player, self.board)[1], self.id)
+        if np.all(self.resources >= costs[SETTLEMENT,:]) and canBuildSettlement:
             actions.append("Buy settlement")
         if np.all(self.resources >= costs[CARD,:]):
             actions.append("Buy card")
-        if np.all(self.resources >= costs[CITY,:]) and len(self.settlements) > 0:
+        if np.all(self.resources >= costs[CITY,:]) and len(self.settlements) > 0 and self.board.if_can_build('city', *opt_city(self.player, self.board)[1], self.id):
             actions.append("Buy city")
-        if np.all(self.resources >= costs[ROAD,:]):
+        if np.all(self.resources >= costs[ROAD,:]) and not canBuildSettlement:
             actions.append("Buy road")
         if self.resources[0] >= self.trade_req[0]:
             actions.append("Trade wood for brick")
@@ -207,27 +208,24 @@ class Expectimax:
             value += val
         return value, best
 
-def canBuildSettlement(player, board):
-    return True
-
 
 def boardHeuristic(state):
     resourceGain = stateResources(state)
     averageGain = averageResourceGain(resourceGain)
-    resourceWeights = resourceWeighting(averageGain, state.board)
+    resourceWeights = resourceWeighting(averageGain)
     points = state.points
     resources = state.resources
     num_settlements = len(state.settlements)
     num_cities = len(state.cities)
     num_roads = len(state.roads)
     trade = 12 - np.sum(state.trade_req)
-    return points*10 + num_settlements*4 + num_cities*8 + 2*np.sum(resources.dot(resourceWeights)) \
-            + np.sum(averageGain.dot(resourceWeights)) + 0.5*num_roads + trade/2
+    return points*10 + num_settlements*4 + num_cities*6 + 2*np.sum(resources.dot(resourceWeights)) \
+            + np.sum(averageGain.dot(resourceWeights)) + 0.25*num_roads + trade/2
 
 def averageResourceGain(resourceGain):
     return np.mean(resourceGain, axis=0)
 
-def resourceWeighting(gain, board):
+def resourceWeighting(gain):
     v = 1/(gain+1)
     return v/np.sum(v)
 
@@ -258,7 +256,7 @@ def stateResources(state):
     return r
 
 
-gameTree = Expectimax(depth=1, evalFunction=boardHeuristic)
+gameTree = Expectimax(depth=2, evalFunction=boardHeuristic)
 
 def action(self):
     self.state = State(self)
@@ -266,27 +264,28 @@ def action(self):
     action = gameTree.getAction(self.state)
     if not hasattr(self, 'i'):
         self.i = 0
-    if self.i < 10:
-        self.i += 1
+    self.i += 1
+    print("Turn:", self.i)
+    print("Resources:", self.resources)
+    if action:
+        print("Action:", action)
         print("Time for expectimax:", time.time()-start)
         print("Current points:", self.points)
-        print("Resources:", self.resources)
-        print("Action:", action)
-        print("Value:", gameTree.getValue(self.state))
-        print("Heursitic:", boardHeuristic(self.state))
+        #print("Resources:", self.resources)
     if action == "Buy settlement":
         s = opt_settlement(self, self.board)[1]
-        print("Settlement:", s)
         self.buy("settlement", *s)
+        print("Settlements:", self.get_settlements())
     elif action == "Buy card":
         self.buy("card")
     elif action == "Buy road":
         r = opt_road(self, self.board, opt_settlement(self, self.board)[0])
-        print("Road:", r)
         self.buy("road", *r)
+        print("Roads:", self.get_roads())
     elif action == "Buy city":
         city = opt_city(self, self.board)[1]
         self.buy("city", *city)
+        print("Cities:", self.get_cities())
     elif action == "Trade wood for brick":
         self.trade(0, 1)
     elif action == "Trade wood for grain":
@@ -304,9 +303,9 @@ def action(self):
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
 
-def planBoard(baseBoard):
-    x = genRand(1,baseBoard.width)
-    y = genRand(1,baseBoard.height)
+def planBoard(board):
+    x = genRand(1,board.width)
+    y = genRand(1,board.height)
     return x, y
 
 def dumpPolicy(self, max_resources):
