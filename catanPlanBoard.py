@@ -37,7 +37,6 @@ def opt_road(player, board, building_vertex):
     player_buildings = board.get_player_settlements(player.player_id) + board.get_player_cities(player.player_id)
     player_roads = board.get_player_roads(player.player_id)
     accessible_vertices = sorted(set(player_buildings+ [v for pair in player_roads for v in pair]), key = lambda v: manhattan_distance(v,building_vertex,board))
-    print("accessible_vertices are", [(v, board.get_vertex_location(v)) for v in accessible_vertices])
     for v in accessible_vertices:
         neighbor_vertices = []
         x,y = board.get_vertex_location(v)
@@ -47,7 +46,6 @@ def opt_road(player, board, building_vertex):
             if board.is_tile(xx, yy):
                 neighbor_vertices.append(board.get_vertex_number(xx,yy))
         neighbor_vertices = sorted(neighbor_vertices, key = lambda v: manhattan_distance(v,building_vertex,board))
-        print("neighbor_vertices are", [(v, board.get_vertex_location(v)) for v in neighbor_vertices])
         for n in neighbor_vertices:
             if board.if_can_build_road(v, n, player.player_id):
                 v_t = list(board.get_vertex_location(v))
