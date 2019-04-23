@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import time
-from catanPlanBoard import opt_city, opt_road, opt_settlement, planBoard
+from catanPlanBoard import opt_city, opt_road, opt_settlement
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
 
@@ -24,7 +24,6 @@ class State:
             return
         self.player = player
         self.board = player.board
-        self.gains = player.planBoard(self.board)[3]
         self.id = player.player_id
         self.resources = np.array(player.resources)
         self.settlements = self.player.get_settlements()[:]
@@ -80,7 +79,7 @@ class State:
             return states
         if action == "Buy settlement":
             resources = np.subtract(resources, costs[SETTLEMENT, :])
-            successor.settlements.append(opt_settlement(self.player, self.board, self.gains)[0])
+            successor.settlements.append(opt_settlement(self.player, self.board)[0])
             successor.points += 1
         elif action == "Buy card":
             resources = np.subtract(resources, costs[CARD, :])
@@ -119,7 +118,7 @@ class State:
         actions = []
         if self.isTerminal():
             return []
-        canBuildSettlement = self.board.if_can_build('settlement', *opt_settlement(self.player, self.board, self.gains)[1], self.id)
+        canBuildSettlement = self.board.if_can_build('settlement', *opt_settlement(self.player, self.board)[1], self.id)
         if np.all(self.resources >= costs[SETTLEMENT,:]) and canBuildSettlement:
             actions.append("Buy settlement")
         if np.all(self.resources >= costs[CARD,:]):
@@ -274,13 +273,13 @@ def action(self):
         print("Current points:", self.points)
         #print("Resources:", self.resources)
     if action == "Buy settlement":
-        s = opt_settlement(self, self.board, self.gains)[1]
+        s = opt_settlement(self, self.board)[1]
         self.buy("settlement", *s)
         print("Settlements:", self.get_settlements())
     elif action == "Buy card":
         self.buy("card")
     elif action == "Buy road":
-        r = opt_road(self, self.board, opt_settlement(self, self.board, self.gains)[0])
+        r = opt_road(self, self.board, opt_settlement(self, self.board)[0])
         self.buy("road", *r)
         print("Roads:", self.get_roads())
     elif action == "Buy city":
@@ -304,6 +303,10 @@ def action(self):
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
 
+def planBoard(board):
+    x = genRand(1,board.width)
+    y = genRand(1,board.height)
+    return x, y
 
 def dumpPolicy(self, max_resources):
     new_resources = np.minimum(self.resources, max_resources // 3)

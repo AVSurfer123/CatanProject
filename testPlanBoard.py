@@ -13,25 +13,29 @@ board = Catan(dice, resources)
 
 player = Player("Player 1", action, dumpPolicy, planBoard)
 player.join_board(board)
-print(board.resources)
-print(board.dice)
+#print(board.resources)
+#print(board.dice)
 p = planBoard(board)
 expected_gain = p[3]
-v, c = p[0](player, board, expected_gain)
+settlement_v, settlement_c = p[0](player, board, expected_gain)
 
-print(v, c)
-x_b, y_b = c
-board.build(x_b, y_b,"settlement", player.player_id)
+print("First settlement at", settlement_v, settlement_c)
 
-v, c = p[0](player,board, expected_gain)
-print(v,c)
-r_v, r_n = p[2](player, board, v)
+board.build(*(settlement_c), "settlement", player.player_id)
 
-board.build_road(r_v, r_n, player.player_id)
-board.settlements[v] = player.player_id
+settlement_v, settlement_c = p[0](player,board, expected_gain)
+print("Second settlement should be at", settlement_v, settlement_c)
 
-v, c = p[1](player,board,expected_gain)
-print(v,c)
+road, road_vc, road_nc = p[2](player, board, settlement_v)
+board.build_road(road_vc, road_nc, player.player_id)
+road, road_vc, road_nc = p[2](player, board, settlement_v)
+board.roads[road] = player.player_id
+
+
+board.settlements[settlement_v] = player.player_id
+
+city_v, city_c = p[1](player,board,expected_gain)
+print("First city to be upgrade should be", city_v, city_c)
 
 board.draw()
 plt.show()
