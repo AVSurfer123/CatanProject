@@ -22,12 +22,14 @@ def opt_settlement(player, board, gains, goal="default"):
                     if board.if_can_build("settlement", *(board.get_vertex_location(v)))]
     return max(vertex_list, key = vertex_score)
 
-def opt_city(player, board, goal = "default"):
+def opt_city(player, board, gains, goal = "default"):
     """ Same thing as opt_settlements but for cities."""
     goal_index = goal_list.get(goal, 0)
     vertex_score = lambda t: settlement_eval(player, board, t[0], gains, goal_index)
     vertex_list = [(v, board.get_vertex_location(v)) for v in board.get_player_settlements(player.player_id) \
-                    if board.if_can_build("city", *(board.get_vertex_location(v)))]
+                    if board.if_can_build("city", *(board.get_vertex_location(v)), player.player_id)]
+
+    print(vertex_list)
     return max(vertex_list, key = vertex_score)
 
 

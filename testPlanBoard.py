@@ -29,6 +29,10 @@ r_v, r_n = p[2](player, board, v)
 
 board.build_road(r_v, r_n, player.player_id)
 board.settlements[v] = player.player_id
+
+v, c = p[1](player,board,expected_gain)
+print(v,c)
+
 board.draw()
 plt.show()
 #print("finished game", i)
