@@ -43,7 +43,7 @@ def opt_road(player, board, building_vertex):
         for dx, dy in [[0,1],[0,-1],[1,0],[-1,0]]:
             xx = x + dx
             yy = y + dy
-            if board.is_tile(xx, yy):
+            if board.get_vertex_number(xx,yy) in range(board.max_vertex+1):
                 neighbor_vertices.append(board.get_vertex_number(xx,yy))
         neighbor_vertices = sorted(neighbor_vertices, key = lambda v: manhattan_distance(v,building_vertex,board))
         for n in neighbor_vertices:
@@ -51,6 +51,8 @@ def opt_road(player, board, building_vertex):
                 v_t = list(board.get_vertex_location(v))
                 n_t = list(board.get_vertex_location(n))
                 return (v,n), v_t, n_t
+    print("need to implement default behavior")
+
 
 
 def planBoard(board):
@@ -95,12 +97,13 @@ def settlement_eval(player, board, v, gains, goal=0):
 def vertex_eval(player, board, v, gains, goal=0):
     h1,h2,h3,h4,h5 = 0.1,1,1,0.2,0.5 #hyperparameters to tune
     w = 0.5*costs[goal] # weight given to resource based on goal as determined by player action (very naive implementation right now)
-    prox_score = get_proximity_score(v, board, player) # should be the number of settlements nearby
+    player_dist = distance_score(v, board, player.player_id) # should be the number of settlements nearby
+    #enemies = set([play])
     vertex_score = gains[v, 0]
     diversity = gains[v, 1]
     resource_count = gains[v, 2:5]
     resource_weights = sum([w[resource]*resource_count[resource] for resource in range(len(resource_count))])
-    return h1*diversity+h2*h3*vertex_score+h4*resource_weights-h5*prox_score
+    return h1*diversity+h2*h3*vertex_score+h4*resource_weights-h5*player_dist
 
 def get_resource_scarcity(board):
     resource_check = np.zeros(3)
@@ -113,19 +116,22 @@ def get_resource_scarcity(board):
     total_resources = board.width*board.height
     return resource_check/total_resources #lower resources should yield a higher score.
 
-def get_proximity_score(vertex1, board, player): #implement preference for closer settlements
+def distance_score(vertex1, board, player_id): #implement preference for closer settlements
     """ Want to see how close the vertex is to our closest settlement """
     num_buildings = 0
     total_dist = 0
-    player_buildings = board.get_player_settlements(player.player_id) + board.get_player_cities(player.player_id)
+    player_buildings = board.get_player_settlements(player_id) + board.get_player_cities(player_id)
 
     if len(player_buildings) == 0: #if it is our first turn
         return 0
 
-    player_roads = board.get_player_roads(player.player_id)
+    player_roads = board.get_player_roads(player_id)
     accessible_vertices = list(set(player_buildings+ [vertex for pair in player_roads for vertex in pair]))
     get_distance = lambda v: manhattan_distance(v, vertex1, board)
     min_distance = min(map(get_distance, accessible_vertices))
+
+    enemy_buildings = [v for v in board.settlements if board.settlements[v] != player_id]
+    enemy_roads = [r for r in board.roads if board.roads[r] != player_id]
 
 
     """
