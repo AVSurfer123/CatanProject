@@ -113,7 +113,7 @@ class Catan:
         #first let's check that the spot is empty:
         if (v1, v2) in self.roads or (v2, v1) in self.roads:
             return False
-        
+
         #now let's check if the proposed road is valid.
         #CORNER CASES
         if v1 == 0 or v2 == 0:

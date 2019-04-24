@@ -1,0 +1,3 @@
+opt_road = useless
+
+use A* in opt_settlement

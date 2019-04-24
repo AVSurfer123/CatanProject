@@ -1,5 +1,5 @@
 import numpy as np
-import random 
+import random
 import time
 from catanPlanBoard import opt_city, opt_road, opt_settlement
 
@@ -146,7 +146,7 @@ class State:
             actions.append("Trade grain for wood")
             actions.append("Trade grain for brick")
         return actions
-    
+
     def isTerminal(self):
         return self.points == 10
 
@@ -169,7 +169,7 @@ class Expectimax:
 
     def getValue(self, gameState):
         return self.stateValue(gameState, 0, 1)[0]
-        
+
     def stateValue(self, state, depth, index):
         if state.isTerminal() or depth == self.depth:
             return self.evalFunction(state), None
@@ -327,4 +327,3 @@ def dumpState(state, max_resources):
 
 def genRand(low,high):
     return np.random.randint(low, high)
-
