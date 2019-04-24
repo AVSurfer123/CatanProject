@@ -1,25 +1,26 @@
 import numpy as np
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
+settlement_threshold = 5
 
 def action(self):
-    self.optimal_settlement = planBoard(baseBoard)[0]
-    self.closest = self.closest_settlement_to_optimal(self.optimal_settlement)
     if self.points == 9:
         if self.if_can_buy("card"):
             self.buy("card")
-
-    if self.points > 7 and self.resources[0] > 2*costs[CARD][0] and self.resources[1] > 2*costs[CARD][1] and self.resources[2] > 2*costs[CARD][2]:
+    num_settlements = len(self.get_settlements)
+    if num_settlements < settlement_threshold:
+        self.optimal_settlement = opt_settlement(self, self.board)
+        opt_settlement = self.board.get_vertex_location(self.optimal_settlement)
+        #self.closest = self.closest_settlement_to_optimal()
+        if self.board.if_can_build("settlement", opt_settlement[0], opt_settlement[1]) and num_settlements < settlement_threshold:
+            if self.if_can_buy("settlement"):
+                self.board.build(opt_settlement[0], opt_settlement[1], "settlement")
+        elif self.if_can_buy("road"):
+            self.to_build_road = opt_road(self, self.board, self.optimal_settlement)
+            self.board.build(self.to_build_road[1], self.to_build_road[2])
+    elif self.points > 7 and self.resources[0] > 2*costs[CARD][0] and self.resources[1] > 2*costs[CARD][1] and self.resources[2] > 2*costs[CARD][2]:
         self.buy("card")
-    if self.board.if_can_build("settlement", optimal_settlement[0], optimal_settlement[1]):
-        if self.if_can_buy("settlement"):
-            self.board.build(optimal_settlement[0], optimal_settlement[1], "settlement")
-    elif self.if_can_buy("road"):
-        roads = self.get_roads()
-
-
-
-
+    
     elif self.resources[np.argmax(self.resources)] >= 4:
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
