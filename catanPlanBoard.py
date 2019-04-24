@@ -161,3 +161,4 @@ def distance_score(vertex1, board, player_id): #implement preference for closer 
 
     """
     return min_distance
+    

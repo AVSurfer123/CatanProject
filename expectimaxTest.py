@@ -1,8 +1,7 @@
 from catan import *
+from catan_bot import *
 
-from expectimaxCatanAction import *
-
-num_trials = 100
+num_trials = 10
 
 width, height = 4, 4
 dice = get_random_dice_arrangement(width, height)
@@ -32,10 +31,11 @@ print(gameTree.getAction(state))
 print(gameTree.getValue(state))
 print(boardHeuristic(state))
 
+start = time.time()
+print("Average number of turns to win", num_trials, "games:", simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials))
+print("Avergae time to win:", time.time()-start)
 
-print("average turns to win: {}".format(simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials)))
-
-settlements, cities, roads, hands, live_points, dice_rolls = simulate_1p_game_with_data(action, dumpPolicy, planBoard, board)
+#settlements, cities, roads, hands, live_points, dice_rolls = simulate_1p_game_with_data(action, dumpPolicy, planBoard, board)
 
 def draw(t):
     t = int(t)
@@ -49,5 +49,4 @@ def draw(t):
     print("resources:", hands[t])
     live_board.draw()
 
-from ipywidgets import *
-interact(draw, t=(0, len(live_points) - 1, 1))
+#interact(draw, t=(0, len(live_points) - 1, 1))
