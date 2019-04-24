@@ -118,12 +118,21 @@ class State:
         actions = []
         if self.isTerminal():
             return []
-        canBuildSettlement = self.board.if_can_build('settlement', *opt_settlement(self.player, self.board)[1], self.id)
+        bestSettlement = opt_settlement(self.player, self.board)[1]
+        bestCity = opt_city(self.player, self.board)[1]
+        if bestSettlement:
+            canBuildSettlement = self.board.if_can_build('settlement', *bestSettlement, self.id)
+        else:
+            canBuildSettlement = False
+        if bestCity:
+            canBuildCity = self.board.if_can_build('city', *bestCity, self.id)
+        else:
+            canBuildCity = False
         if np.all(self.resources >= costs[SETTLEMENT,:]) and canBuildSettlement:
             actions.append("Buy settlement")
         if np.all(self.resources >= costs[CARD,:]):
             actions.append("Buy card")
-        if np.all(self.resources >= costs[CITY,:]) and len(self.settlements) > 0 and self.board.if_can_build('city', *opt_city(self.player, self.board)[1], self.id):
+        if np.all(self.resources >= costs[CITY,:]) and len(self.settlements) > 0 and canBuildCity:
             actions.append("Buy city")
         if np.all(self.resources >= costs[ROAD,:]) and not canBuildSettlement:
             actions.append("Buy road")
