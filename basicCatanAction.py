@@ -4,8 +4,8 @@ from catan import *
 
 from catanPlanBoard import expected_gain
 from naiveCatanAction import action
+
 def planBoard(board):
-    # prefer middle of the board over edges
     return expected_gain(board)
 
 # sample dump policy function: takes in the "Player" and ROBBER_MAX_RESOURCES
@@ -58,7 +58,7 @@ def dumpPolicy(self, max_resources):
     return self.resources - new_resources
 
 
-num_trials = 200
+num_trials = 100
 width, height = 4, 4
 dice = get_random_dice_arrangement(width, height)
 resources = np.random.randint(0, 3, (height, width))

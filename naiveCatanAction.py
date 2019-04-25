@@ -21,22 +21,23 @@ def action(self):
     if num_settlements < settlement_threshold:
         self.optimal_settlement, op_settlement = opt_settlement(self, self.board, self.preComp)
         #print("optimal settlement", op_settlement)
-        
-        #print("dice", self.board.dice)
-        if self.board.if_can_build("settlement", op_settlement[0], op_settlement[1], self.player_id) and num_settlements < settlement_threshold:
-            if self.if_can_buy("settlement"):
-                #print("buying settlement")
-                self.buy("settlement", op_settlement[0], op_settlement[1])
-        elif self.if_can_buy("road"):
-            self.to_build_road = opt_road(self, self.board, self.optimal_settlement)
-            if self.to_build_road is not None:
-                #print("buying road")
-                self.buy("road", self.to_build_road[0], self.to_build_road[1])
+        if op_settlement:
+            #print("dice", self.board.dice)
+            if self.board.if_can_build("settlement", op_settlement[0], op_settlement[1], self.player_id) and num_settlements < settlement_threshold:
+                if self.if_can_buy("settlement"):
+                    #print("buying settlement")
+                    self.buy("settlement", op_settlement[0], op_settlement[1])
+            elif self.if_can_buy("road"):
+                self.to_build_road = opt_road(self, self.board, self.optimal_settlement)
+                if self.to_build_road is not None:
+                    #print("buying road")
+                    self.buy("road", self.to_build_road[0], self.to_build_road[1])
     if num_cities < settlement_threshold:
         self.optimal_city, op_city  = opt_city(self, self.board, self.preComp)
-        if self.if_can_buy("city") and self.optimal_city is not None:
-            #print("buying city")
-            self.buy("city", op_city[0], op_city[1])
+        if op_city:
+            if self.if_can_buy("city") and self.optimal_city is not None:
+                #print("buying city")
+                self.buy("city", op_city[0], op_city[1])
     if self.points > 7 and self.resources[0] > 2*costs[CARD][0] and self.resources[1] > 2*costs[CARD][1] and self.resources[2] > 2*costs[CARD][2]:
         #print("buying card")
         self.buy("card")
@@ -46,9 +47,6 @@ def action(self):
         self.trade(rmax,rmin)
    # print("resources at end of turn", self.resources)
     return
-
-def genRand(low,high):
-    return np.random.randint(low, high)
 
 def expected_resources_gain(board):
     resources = board.get_resources()
@@ -62,7 +60,7 @@ def expected_resources_gain(board):
 def closest_settlement_to_optimal(self):
     distances = []
     for settlement in self.get_settlements():
-        distances.append(manhattan_distance(settlement, self.optimal_settlement))
+        distances.append(manhattan_distance(settlement, self.optimal_settlement, self.board))
 
     return settlement[distances.index(min(distances))]
 

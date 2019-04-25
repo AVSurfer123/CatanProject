@@ -59,9 +59,6 @@ def opt_road(player, board, building_vertex):
 
 
 
-def planBoard(board):
-    return [opt_settlement, opt_city, opt_road, expected_gain(board)]
-
 def expected_gain(board):
     gains = np.zeros((board.max_vertex+1, 5))
     resource_scarcity = get_resource_scarcity(board)
