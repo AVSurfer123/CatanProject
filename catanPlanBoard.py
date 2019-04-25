@@ -1,6 +1,5 @@
 import catan
 import numpy as np
-from naiveCatanAction import manhattan_distance
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
 goal_list = {"default": 0,"settlement": 1, "card": 2, "city": 3, "road": 4}
@@ -161,4 +160,9 @@ def distance_score(vertex1, board, player_id): #implement preference for closer 
 
     """
     return min_distance
+
+def manhattan_distance(vertex_1, vertex_2, board):
+    x1, y1 = board.get_vertex_location(vertex_1)
+    x2, y2 = board.get_vertex_location(vertex_2)
+    return abs(x1 - x2) + abs(y1 - y2)
     

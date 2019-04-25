@@ -2,22 +2,11 @@ import numpy as np
 import catan
 from catan import *
 
-def action(self):
-    if self.get_settlements() == []:
-        (x,y) = self.preComp
-        self.buy("settlement", x, y)
-    elif self.if_can_buy("card"):
-        self.buy("card")
-    elif self.resources[np.argmax(self.resources)] >= 4:
-        rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
-        self.trade(rmax,rmin)
-    return
-
-def planBoard(baseBoard):
+from catanPlanBoard import expected_gain
+from naiveCatanAction import action
+def planBoard(board):
     # prefer middle of the board over edges
-    x = np.random.randint(1, baseBoard.width)
-    y = np.random.randint(1, baseBoard.height)
-    return x,y
+    return expected_gain(board)
 
 # sample dump policy function: takes in the "Player" and ROBBER_MAX_RESOURCES
 # and returns a resource array which indicates the number of each resource to dump.
@@ -25,12 +14,12 @@ def planBoard(baseBoard):
 def dumpPolicy(self, max_resources):
     settlementCount = 0
     for id in self.board.settlements.values():
-        if id == self.playerId:
+        if id == self.player_id:
             settlementCount += 1
 
     cityCount = 0
     for id in self.board.settlements.values():
-        if id == self.playerId:
+        if id == self.player_id:
             cityCount += 1
 
     # Cumulative value of cities and settlements before switching to card buying strategy.
@@ -76,5 +65,6 @@ resources = np.random.randint(0, 3, (height, width))
 board = Catan(dice, resources)
 import time
 start = time.time()
-#print("average turns to win: {}".format(simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials)))
-#print("Time for {} games:".format(num_trials), time.time() - start)
+print("average turns to win: {}".format(simulate_1p_game(action, dumpPolicy, planBoard, board, num_trials)))
+#print("game finished?")
+print("Time for {} games:".format(num_trials), time.time() - start)
