@@ -38,7 +38,7 @@ def action(self):
             if self.if_can_buy("city") and self.optimal_city is not None:
                 #print("buying city")
                 self.buy("city", op_city[0], op_city[1])
-    if self.points > 7 and self.resources[0] > 2*costs[CARD][0] and self.resources[1] > 2*costs[CARD][1] and self.resources[2] > 2*costs[CARD][2]:
+    if self.points > 6 and np.all(np.greater(self.resources, costs[CARD])):
         #print("buying card")
         self.buy("card")
     if self.resources[np.argmax(self.resources)] >= 4 and total_resources > 7:

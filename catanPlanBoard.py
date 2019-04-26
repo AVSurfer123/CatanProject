@@ -96,7 +96,7 @@ def settlement_eval(player, board, v, gains, goal=0):
     return h1*diversity+h2*h3*vertex_score+h4*resource_weights
 
 def vertex_eval(player, board, v, gains, goal=0):
-    h1,h2,h3,h4,h5 = 0.1,1,1,0.2,0.5 #hyperparameters to tune
+    h1,h2,h3,h4,h5 = 0.1,1,1,0.25,0.25 #hyperparameters to tune
     w = 0.5*costs[goal] # weight given to resource based on goal as determined by player action (very naive implementation right now)
     dist_key = lambda t: t[1]
     player_dist = distance_score(v, board, player.player_id)

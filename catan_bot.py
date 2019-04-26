@@ -1,6 +1,8 @@
 import numpy as np
 
 settlement_threshold = 5
+card_threshold = 8
+
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
 goal_list = {"default": 4,"settlement": 0, "card": 1, "city": 2, "road": 3}
 costs = np.array([[2, 1, 1],
@@ -38,7 +40,7 @@ def action(self):
                     self.buy("settlement", op_settlement[0], op_settlement[1])
             elif self.if_can_buy("road"):
                 self.to_build_road = opt_road(self, self.board, self.optimal_settlement)
-                if self.to_build_road is not None:
+                if self.to_build_road:
                     #print("buying road")
                     self.buy("road", self.to_build_road[0], self.to_build_road[1])
     if num_cities < settlement_threshold:
@@ -47,7 +49,7 @@ def action(self):
             if self.if_can_buy("city") and self.optimal_city is not None:
                 #print("buying city")
                 self.buy("city", op_city[0], op_city[1])
-    if self.points > 7 and self.resources[0] > 2*costs[CARD][0] and self.resources[1] > 2*costs[CARD][1] and self.resources[2] > 2*costs[CARD][2]:
+    if self.points > 6 and np.all(np.greater(self.resources, costs[CARD])):
         #print("buying card")
         self.buy("card")
     if self.resources[np.argmax(self.resources)] >= 4 and total_resources > 7:
@@ -133,17 +135,17 @@ def expected_gain(board):
 
 
 def settlement_eval(player, board, v, gains, goal=0):
-    h1,h2,h3,h4,h5 = 0.1,1,1,1,0.5 #hyperparameters to tune
+    h1,h2,h3 = 0.1, 1, 0.5 #hyperparameters to tune
     w = 0.5*costs[goal] # weight given to resource based on goal as determined by player action (very naive implementation right now)
     vertex_score = gains[v,0]
     diversity = gains[v, 1]
     resource_count = gains[v, 2:5]
     resource_weights = sum([w[resource]*resource_count[resource] for resource in range(len(resource_count))])
 
-    return h1*diversity+h2*h3*vertex_score+h4*resource_weights
+    return h1*diversity+h2*vertex_score+h3*resource_weights
 
 def vertex_eval(player, board, v, gains, goal=0):
-    h1,h2,h3,h4,h5 = 0.1,1,1,0.2,0.5 #hyperparameters to tune
+    h1,h2,h3,h4 = 0.1, 1, 0.25, 0.25 #hyperparameters to tune
     w = 0.5*costs[goal] # weight given to resource based on goal as determined by player action (very naive implementation right now)
     dist_key = lambda t: t[1]
     player_dist = distance_score(v, board, player.player_id)
@@ -158,7 +160,7 @@ def vertex_eval(player, board, v, gains, goal=0):
     diversity = gains[v, 1]
     resource_count = gains[v, 2:5]
     resource_weights = sum([w[resource]*resource_count[resource] for resource in range(len(resource_count))])
-    return h1*diversity+h2*h3*vertex_score+h4*resource_weights-h5*dist_score
+    return h1*diversity+h2*vertex_score+h3*resource_weights-h3*dist_score
 
 def get_resource_scarcity(board):
     resource_check = np.zeros(3)
