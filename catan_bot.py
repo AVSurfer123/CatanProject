@@ -1,6 +1,6 @@
 import numpy as np
 
-settlement_threshold = 6
+settlement_threshold = 5
 card_threshold = 7
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
@@ -37,7 +37,7 @@ def action(self):
             #print("dice", self.board.dice)
             if self.board.if_can_build("settlement", op_settlement[0], op_settlement[1], self.player_id) and num_settlements < settlement_threshold:
                 if self.if_can_buy("settlement"):
-                    #print("buying settlement")
+                    #print("Bought settlement at:", op_settlement)
                     self.buy("settlement", op_settlement[0], op_settlement[1])
             elif self.if_can_buy("road"):
                 self.to_build_road = opt_road(self, self.board, self.optimal_settlement)
@@ -48,7 +48,7 @@ def action(self):
         self.optimal_city, op_city  = opt_city(self, self.board, self.preComp)
         if op_city:
             if self.if_can_buy("city") and self.optimal_city is not None:
-                #print("buying city")
+                #print("Bought city at:", op_city)
                 self.buy("city", op_city[0], op_city[1])
     if self.points > card_threshold and np.all(np.greater(self.resources, 1.5*costs[CARD])):
         #print("buying card")
@@ -57,8 +57,7 @@ def action(self):
         #print("trying to trade")
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
-    # print("resources at end of turn", self.resources)
-    
+    # print("resources at end of turn", self.resources)         
     return
 
 
@@ -123,12 +122,12 @@ def expected_gain(board):
                 yy = y + dy
                 if board.is_tile(xx, yy):
                     die = board.dice[yy, xx]
-                    if board.is_tile(xx, yy) and die != 7:
+                    if die != 7:
                         resource = board.resources[xx,yy]
                         resource_check[resource] += 1
                         vertex_score += rollProb.get(die, 0)/resource_scarcity[resource]
 
-        diversity = np.count_nonzero(gains[v, 1:4])
+        diversity = np.count_nonzero(resource_check)
         gains[v,0] = vertex_score
         gains[v,1] = diversity
         gains[v,2:5] = resource_check
@@ -147,21 +146,22 @@ def settlement_eval(player, board, v, gains, goal=0):
     return h1*diversity+h2*vertex_score+h3*resource_weights
 
 def vertex_eval(player, board, v, gains, goal=0):
-    h1,h2,h3,h4 = 0.1, 1, 0.25, 0.25 #hyperparameters to tune
+    h1,h2,h3,h4 = 0.1, 1, 0.5, 0.15 #hyperparameters to tune
     w = 0.5*costs[goal] # weight given to resource based on goal as determined by player action (very naive implementation right now)
     dist_key = lambda t: t[1]
     player_dist = distance_score(v, board, player.player_id)
     enemies = set([id for id in board.settlements.values() if id != player.player_id])
     player_distances = [(id, distance_score(v, board, id)) for id in enemies] + [(player.player_id, player_dist)]
     closest_player = min(player_distances, key=dist_key)
-    if closest_player[0] == player.player_id:
-        dist_score = player_dist
-    else:
-        dist_score = closest_player[1] + player_dist
+    dist_score = closest_player[1] + player_dist
     vertex_score = gains[v, 0]
     diversity = gains[v, 1]
     resource_count = gains[v, 2:5]
     resource_weights = sum([w[resource]*resource_count[resource] for resource in range(len(resource_count))])
+    # print("Diversity:", diversity)
+    # print("Vertex score:", vertex_score)
+    # print("Resource weights:", resource_weights)
+    # print("Dist score:", dist_score)
     return h1*diversity+h2*vertex_score+h3*resource_weights-h4*dist_score
 
 def get_resource_scarcity(board):
@@ -171,7 +171,7 @@ def get_resource_scarcity(board):
             if board.is_tile(x,y):
                 r = board.resources[x,y]
                 if r != -1:
-                    resource_check[r] += 1;
+                    resource_check[r] += 1
     total_resources = board.width*board.height
     return resource_check/total_resources #lower resources should yield a higher score.
 
