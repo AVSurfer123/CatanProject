@@ -1,7 +1,7 @@
 import numpy as np
 
-settlement_threshold = 5
-card_threshold = 8
+settlement_threshold = 6
+card_threshold = 7
 
 rollProb = {2: 1/36, 12: 1/36, 3: 1/18, 11: 1/18, 4: 1/12, 10: 1/12, 5: 1/9, 9: 1/9, 6: 5/36, 8: 5/36, 7: 1/6}
 goal_list = {"default": 4,"settlement": 0, "card": 1, "city": 2, "road": 3}
@@ -24,12 +24,13 @@ def action(self):
     total_resources = np.sum(self.resources)
     num_settlements = len(self.get_settlements())
     num_cities = len(self.get_cities())
+    num_buildings = num_settlements + num_cities
     #print("resources at beginning of turn ", self.resources)
     #print("num_settlements", num_settlements)
     #print("num_cities", num_cities)
     #print("points", self.points)
     #print("roads", self.board.roads)
-    if num_settlements < settlement_threshold:
+    if num_buildings < settlement_threshold:
         self.optimal_settlement, op_settlement = opt_settlement(self, self.board, self.preComp)
         #print("optimal settlement", op_settlement)
         if op_settlement:
@@ -40,7 +41,7 @@ def action(self):
                     self.buy("settlement", op_settlement[0], op_settlement[1])
             elif self.if_can_buy("road"):
                 self.to_build_road = opt_road(self, self.board, self.optimal_settlement)
-                if self.to_build_road:
+                if self.to_build_road[0]:
                     #print("buying road")
                     self.buy("road", self.to_build_road[0], self.to_build_road[1])
     if num_cities < settlement_threshold:
@@ -49,14 +50,15 @@ def action(self):
             if self.if_can_buy("city") and self.optimal_city is not None:
                 #print("buying city")
                 self.buy("city", op_city[0], op_city[1])
-    if self.points > 6 and np.all(np.greater(self.resources, costs[CARD])):
+    if self.points > card_threshold and np.all(np.greater(self.resources, 1.5*costs[CARD])):
         #print("buying card")
         self.buy("card")
     if self.resources[np.argmax(self.resources)] >= 4 and total_resources > 7:
         #print("trying to trade")
         rmax, rmin = np.argmax(self.resources), np.argmin(self.resources)
         self.trade(rmax,rmin)
-   # print("resources at end of turn", self.resources)
+    # print("resources at end of turn", self.resources)
+    
     return
 
 
@@ -160,7 +162,7 @@ def vertex_eval(player, board, v, gains, goal=0):
     diversity = gains[v, 1]
     resource_count = gains[v, 2:5]
     resource_weights = sum([w[resource]*resource_count[resource] for resource in range(len(resource_count))])
-    return h1*diversity+h2*vertex_score+h3*resource_weights-h3*dist_score
+    return h1*diversity+h2*vertex_score+h3*resource_weights-h4*dist_score
 
 def get_resource_scarcity(board):
     resource_check = np.zeros(3)
